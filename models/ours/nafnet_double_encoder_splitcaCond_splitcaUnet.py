@@ -9,7 +9,7 @@ class EmbedBlock(nn.Module):
     #
     @abstractmethod
     def forward(self, x, emb):
-        #
+        pass #
 
 
 class EmbedSequential(nn.Sequential, EmbedBlock):

@@ -20,7 +20,7 @@ class Network(BaseNetwork):
         elif module_name == 'ours':
             from .ours.unet_down3 import UNet
         elif module_name == "ours":
-            from .ours.ours import UNet
+            from .ours.nafnet import UNet
         elif module_name == "conv2former":
             from .ours.guided_diffusion_likai import UNet
         elif module_name == "double":
@@ -58,27 +58,33 @@ class Network(BaseNetwork):
     def set_loss(self, loss_fn):
         self.loss_fn = loss_fn
 
+    # 노이즈 수준 설정 (beta_schedule)
     def set_new_noise_schedule(self, device=torch.device('cuda'), phase='train'):
+        # PyTorch Tensor 기본 설정 - to_torch 호출 시 해당 설정으로 자동 변환됨됨
         to_torch = partial(torch.tensor, dtype=torch.float32, device=device)
+
         betas = make_beta_schedule(**self.beta_schedule[phase])
-        betas = betas.detach().cpu().numpy() if isinstance(
-            betas, torch.Tensor) else betas
+        betas = betas.detach().cpu().numpy() if isinstance(betas, torch.Tensor) else betas
         alphas = 1. - betas
 
+        # betas = np.linspace(1e-6, 1e-2, 1000)
+        # betas.shape (1000,)
         timesteps, = betas.shape
         self.num_timesteps = int(timesteps)
 
         gammas = np.cumprod(alphas, axis=0)
         gammas_prev = np.append(1., gammas[:-1])
 
-        self.register_buffer('gammas', to_torch(gammas))
-        self.register_buffer('sqrt_recip_gammas', to_torch(np.sqrt(1. / gammas)))
-        self.register_buffer('sqrt_recipm1_gammas', to_torch(np.sqrt(1. / gammas - 1)))
+        # 학습되지 않는 변수(고정값) 모델에 저장 - q(x_t | x_{t-1}) 과정
+        self.registered_buffer('gammas', to_torch(gammas))
+        self.registered_buffer('sqrt_recip_gammas', to_torch(np.sqrt(1. / gammas)))
+        self.registered_buffer('sqrt_recipm1_gammas', to_torch(np.sqrt(1. / gammas - 1)))
 
+        # p(x_{t-1} | x_t, x_0)
         posterior_variance = betas * (1. - gammas_prev) / (1. - gammas)
-        self.register_buffer('posterior_log_variance_clipped', to_torch(np.log(np.maximum(posterior_variance, 1e-20))))
-        self.register_buffer('posterior_mean_coef1', to_torch(betas * np.sqrt(gammas_prev) / (1. - gammas)))
-        self.register_buffer('posterior_mean_coef2', to_torch((1. - gammas_prev) * np.sqrt(alphas) / (1. - gammas)))
+        self.registered_buffer('posterior_log_variance_clipped', to_torch(np.log(np.maximum(posterior_variance, 1e-20))))
+        self.registered_buffer('posterior_mean_coef1', to_torch(betas * np.sqrt(gammas_prev) / (1. - gammas)))
+        self.registered_buffer('posterior_mean_coef2', to_torch((1. - gammas_prev) * np.sqrt(alphas) / (1. - gammas)))
 
     # Reverse Process - y_t에서 y_0 복원 예측 (Neural Network 기반)
     def predict_start_from_noise(self, y_t, t, noise):
@@ -225,7 +231,7 @@ def make_beta_schedule(schedule, n_timestep, linear_start=1e-6, linear_end=1e-2,
         alphas = alphas / alphas[0]
         betas = 1 - alphas[1:] / alphas[:-1]
         betas = betas.clamp(max=0.999)
-    elif schedule == 'sigmoid':
+    elif schedule == 'sigmoid': # sigmoid 함수 기반 증가
         start = -3
         end = 3
         tau = 1
