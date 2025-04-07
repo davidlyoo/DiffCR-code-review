@@ -8,7 +8,6 @@ from functools import partial
 
 from core.base_network import BaseNetwork
 
-
 class Network(BaseNetwork):
     def __init__(self, unet, beta_schedule, module_name='sr3', **kwargs):
         super(Network, self).__init__(**kwargs)

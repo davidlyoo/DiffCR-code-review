@@ -13,15 +13,18 @@ class EmbedBlock(nn.Module):
 
 
 class EmbedSequential(nn.Sequential, EmbedBlock):
-    #
+    # 임베딩이 필요한 경우 forward를 호출함
     def forward(self, x, emb):
         for layer in self:
+            # 각 레이어가 임베딩을 필요로 하는지 판단단
             if isinstance(layer, EmbedBlock):
                 x = layer(x, emb)
             else:
                 x = layer(x)
         return x
     
+
+# Sinusoidal Encoding
 def gamma_embedding(gammas, dim, max_period=10000):
     #
     half = dim // 2
@@ -77,12 +80,14 @@ class LayerNorm2d(nn.Module):
         return LayerNormFunction.apply(x, self.weight, self.bias, self.eps)
 
 
+# 채널 dimension 반으로 나눈 후, elementwise 곱셈
 class SimpleGate(nn.Module):
     def forward(self, x):
         x1, x2 = x.chunk(2, dim=1)
         return x1 * x2
 
 
+# Condition Block
 class CondNAFBlock(nn.Module):
     def __init__(self, c, DW_Expand=2, FFN_Expand=2, drop_out_rate=0.):
         super().__init__()
@@ -155,6 +160,7 @@ class CondNAFBlock(nn.Module):
         return y + x * self.gamma
 
 
+# Time Block
 class NAFBlock(EmbedBlock):
     def __init__(self, c, DW_Expand=2, FFN_Expand=2, drop_out_rate=0.):
         super().__init__()
@@ -200,6 +206,7 @@ class NAFBlock(EmbedBlock):
 
         self.beta = nn.Parameter(torch.zeros((1, c, 1, 1)), requires_grad=True)
         self.gamma = nn.Parameter(torch.zeros((1, c, 1, 1)), requires_grad=True)
+        # MLP - 최종 Time
         self.time_emb = nn.Sequential(
             nn.SiLU(),
             nn.Linear(256, c),
