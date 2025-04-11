@@ -33,6 +33,7 @@ def random_cropping_bbox(img_shape=(256, 256), mask_mode='onedirection'):
 
     return (top, left, height, width)
 
+
 def random_bbox(img_shape=(256, 256), max_bbox_shape=(128, 128), max_bbox_delta=40, min_margin=20):
     """_summary_
 
@@ -89,6 +90,7 @@ def random_bbox(img_shape=(256, 256), max_bbox_shape=(128, 128), max_bbox_delta=
 
     return (top, left, h, w)
 
+
 def bbox2mask(img_shape, bbox, dtype='uint8'):
     """_summary_
 
@@ -106,6 +108,7 @@ def bbox2mask(img_shape, bbox, dtype='uint8'):
     mask[bbox[0]:bbox[0] + bbox[2], bbox[1]:bbox[1] + bbox[3], :] = 1
     
     return mask
+
 
 def brush_stroke_mask(img_shape,
                       num_vertices = (4,12),
@@ -200,6 +203,7 @@ def brush_stroke_mask(img_shape,
 
     return mask
 
+
 def random_irregular_mask(img_shape,
                           num_vertices=(4, 8),
                           max_angle=4,
@@ -278,6 +282,7 @@ def random_irregular_mask(img_shape,
     mask = np.expand_dims(mask, axis=2)
 
     return mask
+
 
 def get_irregular_mask(img_shape, area_ratio_range=(0.15, 0.5), **kwargs):
     """_summary_

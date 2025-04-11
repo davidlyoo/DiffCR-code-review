@@ -50,6 +50,7 @@ def init_obj(opt, logger, *args, default_file_name='default file', given_module=
         raise NotImplementedError('{} [{:s}() form {:s}] not recognized.'.format(init_type, class_name, file_name))
     return ret
 
+
 def mkdirs(paths):
     if isinstance(paths, str):
         os.makedirs(paths, exist_ok=True)
@@ -57,8 +58,10 @@ def mkdirs(paths):
         for path in paths:
             os.makedirs(path, exist_ok=True)
 
+
 def get_timestamp():
     return datetime.now().strftime('%y%m%d_%H%M%S')
+
 
 def write_json(content, fname):
     fname = Path(fname)
@@ -83,6 +86,7 @@ def dict_to_nonedict(opt):
     else:
         return opt
 
+
 def dict2str(opt, indent_l=1):
     """ dict to string for logger """
     msg = ''
@@ -95,6 +99,7 @@ def dict2str(opt, indent_l=1):
             msg += ' ' * (indent_l * 2) + k + ': ' + str(v) + '\n'
     return msg
 
+
 def parse(args):
     json_str = ''
     with open(args.config, 'r') as f:
@@ -103,20 +108,20 @@ def parse(args):
             json_str += line
     opt = json.loads(json_str, object_pairs_hook=OrderedDict)
 
-    ''' replace the config context using args '''
+    # 인자 값으로 config 값 덮어쓰기
     opt['phase'] = args.phase
     if args.gpu_ids is not None:
         opt['gpu_ids'] = [int(id) for id in args.gpu_ids.split(',')]
     if args.batch is not None:
         opt['datasets'][opt['phase']]['dataloader']['args']['batch_size'] = args.batch
 
-    ''' set cuda environment '''
+    # CUDA 설정
     if len(opt['gpu_ids']) > 1:
         opt['distributed'] = True
     else:
         opt['distributed'] = False
 
-    ''' update name '''
+    # 이름 업데이트
     if args.debug:
         opt['name'] = 'debug_{}'.format(opt['name'])
     elif opt['finetune_norm']:
@@ -124,25 +129,25 @@ def parse(args):
     else:
         opt['name'] = '{}_{}'.format(opt['phase'], opt['name'])
 
-    ''' set log directory '''
+    # 로그, 결과 저장을 위한 실험 루트 디렉토리 생성
     experiments_root = os.path.join(opt['path']['base_dir'], '{}_{}'.format(opt['name'], get_timestamp()))
     mkdirs(experiments_root)
 
-    ''' save json '''
+    # json 파일 저장
     write_json(opt, '{}/config.json'.format(experiments_root))
 
-    ''' change folder relative hierarchy '''
+    # 상대 경로 기반으로 경로 갱신
     opt['path']['experiments_root'] = experiments_root
     for key, path in opt['path'].items():
         if 'resume' not in key and 'base' not in key and 'root' not in key:
             opt['path'][key] = os.path.join(experiments_root, path)
             mkdirs(opt['path'][key])
 
-    ''' debug mode '''
+    # 디버그 모드 - 설정 덮어쓰기
     if 'debug' in opt['name']:
         opt['train'].update(opt['debug'])
 
-    ''' code backup ''' 
+    # 코드 백업 (전체 디렉토리 복사)
     for name in os.listdir('.'):
         if name in ['config', 'models', 'core', 'slurm', 'data']:
             shutil.copytree(name, os.path.join(opt['path']['code'], name), ignore=shutil.ignore_patterns("*.pyc", "__pycache__"))

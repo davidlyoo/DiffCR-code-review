@@ -1,7 +1,8 @@
 import argparse
-import numpy as np
 import glob
 import os
+
+import numpy as np
 from cleanfid import fid
 from skimage.measure import compare_psnr, compare_ssim
 from PIL import Image
@@ -9,6 +10,7 @@ from rich.progress import track
 
 from core.base_dataset import BaseDataset
 from models.metric import inception_score
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

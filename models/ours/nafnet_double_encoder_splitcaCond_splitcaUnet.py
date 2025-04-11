@@ -1,9 +1,11 @@
 import math
+from functools import partial
+from abc import abstractmethod
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from functools import partial
-from abc import abstractmethod
+
 
 class EmbedBlock(nn.Module):
     #
@@ -22,7 +24,7 @@ class EmbedSequential(nn.Sequential, EmbedBlock):
             else:
                 x = layer(x)
         return x
-    
+
 
 # Sinusoidal Encoding
 def gamma_embedding(gammas, dim, max_period=10000):
@@ -58,7 +60,6 @@ class LayerNormFunction(torch.autograd.Function):
         eps = ctx.eps
         N, C, H, W = grad_output.size()
 
-        
         y, var, weight = ctx.saved_variables
         g = grad_output * weight.view(1, C, 1, 1)
         mean_g = g.mean(dim=1, keepdim=True)
@@ -138,7 +139,6 @@ class CondNAFBlock(nn.Module):
         x = input
 
         x = self.norm1(x)
-
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.sg(x)
@@ -325,7 +325,7 @@ class UNet(nn.Module):
         cond = self.cond_intro(cond)
 
         encs = []
-        
+
         for encoder, down, cond_encoder, cond_down in zip(self.encoders, self.downs, self.cond_encoders, self.cond_downs):
             x = encoder(x, t)
             cond = cond_encoder(cond)
@@ -356,6 +356,7 @@ class UNet(nn.Module):
         x = F.pad(x, (0, mod_pad_w, 0, mod_pad_h))
 
         return x
+
 
 if __name__ == '__main__':
     # img_channel = 5

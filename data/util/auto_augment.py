@@ -1,4 +1,5 @@
 import random
+
 import numpy as np
 from scipy import ndimage
 from PIL import Image, ImageEnhance, ImageOps
@@ -91,6 +92,7 @@ operations = {
     'Cutout': lambda img, magnitude: cutout(img, magnitude),
 }
 
+
 def apply_policy(img, policy):
     if random.random() < policy[1]:
         img = operations[policy[0]](img, policy[2])
@@ -99,6 +101,7 @@ def apply_policy(img, policy):
 
     return img
 
+
 def transform_matrix_offset_center(matrix, x, y):
     o_x = float(x) / 2 + 0.5
     o_y = float(y) / 2 + 0.5
@@ -106,6 +109,7 @@ def transform_matrix_offset_center(matrix, x, y):
     reset_matrix = np.array([[1, 0, -o_x], [0, 1, -o_y], [0, 0, 1]])
     transform_matrix = offset_matrix @ matrix @ reset_matrix
     return transform_matrix
+
 
 def shear_x(img, magnitude):
     img = np.array(img)
@@ -124,6 +128,7 @@ def shear_x(img, magnitude):
     img = Image.fromarray(img)
     return img
 
+
 def shear_y(img, magnitude):
     img = np.array(img)
     magnitudes = np.linspace(-0.3, 0.3, 11)
@@ -140,6 +145,7 @@ def shear_y(img, magnitude):
                     offset) for c in range(img.shape[2])], axis=2)
     img = Image.fromarray(img)
     return img
+
 
 def translate_x(img, magnitude):
     img = np.array(img)
@@ -158,6 +164,7 @@ def translate_x(img, magnitude):
     img = Image.fromarray(img)
     return img
 
+
 def translate_y(img, magnitude):
     img = np.array(img)
     magnitudes = np.linspace(-150/331, 150/331, 11)
@@ -174,6 +181,7 @@ def translate_y(img, magnitude):
                     offset) for c in range(img.shape[2])], axis=2)
     img = Image.fromarray(img)
     return img
+
 
 def rotate(img, magnitude):
     img = np.array(img)
@@ -192,47 +200,57 @@ def rotate(img, magnitude):
     img = Image.fromarray(img)
     return img
 
+
 def auto_contrast(img, magnitude):
     img = ImageOps.autocontrast(img)
     return img
+
 
 def invert(img, magnitude):
     img = ImageOps.invert(img)
     return img
 
+
 def equalize(img, magnitude):
     img = ImageOps.equalize(img)
     return img
+
 
 def solarize(img, magnitude):
     magnitudes = np.linspace(0, 256, 11)
     img = ImageOps.solarize(img, random.uniform(magnitudes[magnitude], magnitudes[magnitude+1]))
     return img
 
+
 def posterize(img, magnitude):
     magnitudes = np.linspace(4, 8, 11)
     img = ImageOps.posterize(img, int(round(random.uniform(magnitudes[magnitude], magnitudes[magnitude+1]))))
     return img
+
 
 def contrast(img, magnitude):
     magnitudes = np.linspace(0.1, 1.9, 11)
     img = ImageEnhance.Contrast(img).enhance(random.uniform(magnitudes[magnitude], magnitudes[magnitude+1]))
     return img
 
+
 def color(img, magnitude):
     magnitudes = np.linspace(0.1, 1.9, 11)
     img = ImageEnhance.Color(img).enhance(random.uniform(magnitudes[magnitude], magnitudes[magnitude+1]))
     return img
+
 
 def brightness(img, magnitude):
     magnitudes = np.linspace(0.1, 1.9, 11)
     img = ImageEnhance.Brightness(img).enhance(random.uniform(magnitudes[magnitude], magnitudes[magnitude+1]))
     return img
 
+
 def sharpness(img, magnitude):
     magnitudes = np.linspace(0.1, 1.9, 11)
     img = ImageEnhance.Sharpness(img).enhance(random.uniform(magnitudes[magnitude], magnitudes[magnitude+1]))
     return img
+
 
 def cutout(org_img, magnitude=None):
 
@@ -263,7 +281,6 @@ def cutout(org_img, magnitude=None):
 
 
 class Cutout(object):
-
     def __init__(self, length=16):
         self.length = length
 

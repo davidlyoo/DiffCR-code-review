@@ -1,4 +1,5 @@
 import copy
+
 import torch
 import tqdm
 
@@ -146,10 +147,10 @@ class Palette(BaseModel):
             if self.ema_scheduler is not None:
                 if self.iter > self.ema_scheduler['ema_start'] and self.iter % self.ema_scheduler['ema_iter'] == 0:
                     self.EMA.update_model_average(self.netG_EMA, self.netG)
-                    
-                    
+
             for scheduler in self.schedulers:
                 scheduler.step()
+
             return self.train_metrics.result()
 
     def val_step(self):
