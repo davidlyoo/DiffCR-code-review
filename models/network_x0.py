@@ -1,9 +1,9 @@
 import math
+from inspect import isfunction
+from functools import partial
 
 import torch
 import numpy as np
-from inspect import isfunction
-from functools import partial
 from tqdm import tqdm
 
 from core.base_network import BaseNetwork
@@ -184,16 +184,19 @@ class Network(BaseNetwork):
 def exists(x):
     return x is not None
 
+
 def default(val, d):
     if exists(val):
         return val
     return d() if isfunction(d) else d
+
 
 # 특정 timestep t에 해당하는 coefficient 값을 가져오는 함수
 def extract(a, t, x_shape=(1, 1, 1, 1)):
     b, *_ = t.shape
     out = a.gather(-1, t)
     return out.reshape(b, *((1,) * (len(x_shape) - 1)))
+
 
 # beta_schedule function
 def _warmup_beta(linear_start, linear_end, n_timestep, warmup_frac):
@@ -203,6 +206,7 @@ def _warmup_beta(linear_start, linear_end, n_timestep, warmup_frac):
         linear_start, linear_end, warmup_time, dtype=np.float64
     )
     return betas
+
 
 def make_beta_schedule(schedule, n_timestep, linear_start=1e-6, linear_end=1e-2, cosine_s=8e-3):
     if schedule == 'quad': # 비선형 (제곱) 증가

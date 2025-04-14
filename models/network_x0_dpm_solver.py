@@ -1,13 +1,14 @@
 import math
+from inspect import isfunction
+from functools import partial
 
 import torch
 import numpy as np
-from inspect import isfunction
-from functools import partial
 from tqdm import tqdm
 
 from core.base_network import BaseNetwork
 from core.dpm_solver_pytorch import NoiseScheduleVP, model_wrapper, DPM_Solver
+
 
 class Network(BaseNetwork):
     def __init__(self, unet, beta_schedule, module_name='ours_double_encoder_splitcaCond_splitcaUnet', **kwargs):
@@ -201,15 +202,14 @@ class Network(BaseNetwork):
 
         noise = default(noise, lambda: torch.randn_like(y_0))
         y_noisy = self.q_sample(
-            y_0=y_0, sample_gammas=sample_gammas.view(-1, 1, 1, 1), noise=noise
-        )
+            y_0=y_0, sample_gammas=sample_gammas.view(-1, 1, 1, 1), noise=noise)
 
         if mask is not None:
-            noise_hat = self.denoise_fn(torch.cat([y_cond, y_noisy * mask + (1. - mask) * y_0], dim=1), sample_gammas)
+            noise_hat = self.denoise_fn(torch.cat([y_cond, y_noisy*mask+(1.-mask)*y_0], dim=1), sample_gammas)
             loss = self.loss_fn(mask * noise, mask * noise_hat)
         else:
-            noise_hat = self.denoise_fn(torch.cat([y_cond, y_noisy], dim=1), sample_gammas)
-            loss =self.loss_fn(noise, noise_hat)
+            y_0_hat = self.denoise_fn(torch.cat([y_cond, y_noisy], dim=1), sample_gammas)
+            loss = self.loss_fn(y_0, y_0_hat)
         return loss
 
 
@@ -217,16 +217,19 @@ class Network(BaseNetwork):
 def exists(x):
     return x is not None
 
+
 def default(val, d):
     if exists(val):
         return val
     return d() if isfunction(d) else d
+
 
 # 특정 timestep t에 해당하는 coefficient 값을 가져오는 함수
 def extract(a, t, x_shape=(1, 1, 1, 1)):
     b, *_ = t.shape
     out = a.gather(-1, t)
     return out.reshape(b, *((1,) * (len(x_shape) - 1)))
+
 
 # beta_schedule function
 def _warmup_beta(linear_start, linear_end, n_timestep, warmup_frac):
@@ -236,6 +239,7 @@ def _warmup_beta(linear_start, linear_end, n_timestep, warmup_frac):
         linear_start, linear_end, warmup_time, dtype=np.float64
     )
     return betas
+
 
 def make_beta_schedule(schedule, n_timestep, linear_start=1e-6, linear_end=1e-2, cosine_s=8e-3):
     if schedule == 'quad': # 비선형 (제곱) 증가

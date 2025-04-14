@@ -1,5 +1,6 @@
 import math
 import random
+import numpy as np
 
 import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -25,6 +26,7 @@ def get_rgb(image):  # CHW 형식 입력
     rgb[np.isnan(rgb)] = np.nanmean(rgb)
     rgb = rgb.astype(np.uint8)
     return rgb
+
 
 def tensor2img(tensor, out_type=np.uint8, min_max=(-1, 1)):
     '''
@@ -108,6 +110,7 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(-1, 1)):
 #         raise TypeError('Only support 4D, 3D and 2D tensor But received dimension: {:d}'.format(n_dim))
 #     return img_np.astype(out_type).squeeze()
 
+
 def postprocess(images):
     return [tensor2img(image) for image in images]
 
@@ -116,6 +119,7 @@ def postprocess(images):
 # - set_seed: 다양한 라이브러리의 시드를 고정해 재현성 확보
 # - set_gpu / set_device: 모델 및 인자를 GPU 또는 분산 환경에 맞게 설정
 # ------------------------------------------------------------
+
 def set_seed(seed, gl_seed=0):
     if seed >= 0 and gl_seed >= 0:
         seed += gl_seed
@@ -130,6 +134,7 @@ def set_seed(seed, gl_seed=0):
         torch.backends.cudnn.deterministic = False
         torch.backends.cudnn.benchmark = True
 
+
 def set_gpu(args, distributed=False, rank=0):
     if args is None:
         return None
@@ -138,6 +143,7 @@ def set_gpu(args, distributed=False, rank=0):
                    broadcast_buffers=True, find_unused_parameters=False)
     else:
         return args.cuda()
+
 
 def set_device(args, distributed=False, rank=0):
     if torch.cuda.is_available():

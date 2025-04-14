@@ -27,6 +27,7 @@ IMG_EXTENSIONS = [
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in IMG_EXTENSIONS)
 
+
 def make_dataset(dir):
     # 만약 주어진 경로가 파일이면 텍스트 파일로부터 이미지 경로 목록을 로드
     if os.path.isfile(dir):
@@ -41,6 +42,7 @@ def make_dataset(dir):
                     path = os.path.join(root, fname)
                     images.append(path)
     return images
+
 
 def pil_loader(path):
     return Image.open(path).convert('RGB')
