@@ -73,3 +73,10 @@ You can download pretrained models here:
 - Our awesome model trained on Sen2_MTC_New: [diffcr_new.pth](/pretrained/diffcr_new.pth) -->
 
 <!-- >📋  Give a link to where/how the pretrained models can be downloaded and how they were trained (if applicable).  Alternatively you can have an additional column in your results table with a link to the models. -->
+
+## 📚 참고 문헌
+논문: Diffusion Bridge for Cloud Removal, IEEE TGRS 2024
+🔗 https://arxiv.org/abs/2307.16104
+
+원본 코드:
+🔗 https://github.com/XavierJiezou/DiffCR
